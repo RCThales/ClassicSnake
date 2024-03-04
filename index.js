@@ -3,11 +3,14 @@ class Apple {
   appleXPosition;
   appleYPosition;
 
-  constructor(color, appleXPosition, appleYPosition) {
+  constructor(color) {
     this.color = color;
-    this.appleXPosition = appleXPosition;
-    this.appleYPosition = appleYPosition;
   }
+
+  randomizePositionInCanvas = () => {
+    this.appleXPosition = Math.floor(Math.random() * gameState.tileSize);
+    this.appleYPosition = Math.floor(Math.random() * gameState.tileSize);
+  };
 }
 class Snake {
   speed;
@@ -37,6 +40,14 @@ class Snake {
   raiseSpeed = (ratio) => {
     this.speed += ratio;
   };
+
+  resetSnake = () => {
+    this.headXPosition = 10;
+    this.headYPosition = 10;
+    this.tailLength = 1;
+    this.speed = 5;
+    this.snakeParts = [];
+  };
 }
 
 class SnakePart {
@@ -59,6 +70,7 @@ class GameState {
   tileCount = 20;
   tileSize;
   gameInput;
+  isGameStarted = false;
 
   constructor() {
     this.gameInput = new GameInput();
@@ -67,6 +79,15 @@ class GameState {
 
   addOnePoint = () => {
     this.score++;
+  };
+
+  resetGameState = () => {
+    this.score = 0;
+    this.isGameStarted = true;
+    this.gameInput.xVelocity = 0;
+    this.gameInput.yVelocity = 0;
+    this.gameInput.inputsxVelocity = 0;
+    this.gameInput.inputsyVelocity = 0;
   };
 }
 
@@ -78,7 +99,7 @@ const audios = {
 
 const gameState = new GameState();
 const snake = new Snake("orange", "green", 5, 10, 10, 1);
-const apple = new Apple("red", 0, 5);
+const apple = new Apple("red");
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -88,9 +109,11 @@ canvas.width = gameState.width;
 canvas.height = gameState.height;
 
 window.addEventListener("load", () => {
+  drawHighscoreOnMenu();
   audios.gameMainAudio.loop = true;
   audios.gameMainAudio.volume = 0.4;
-  audios.gameMainAudio.play();
+
+  apple.randomizePositionInCanvas();
 });
 
 window.addEventListener("message", (event) => {
@@ -133,15 +156,36 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (event.key.toLowerCase() === "k" || event.key === "Enter") {
+    if (!gameState.isGameStarted) {
+      goToGame();
+      gameState.isGameStarted = true;
+    }
     if (!isGameOver()) return;
     resetGame();
   }
 
   if (event.key.toLowerCase() === "l" || event.key === "Esc") {
+    if (!gameState.isGameStarted) {
+      goBackToMenu();
+    }
     if (!isGameOver()) return;
     goBackToMenu();
   }
 });
+
+const hideGameMenu = () => {
+  const gameMenu = document.querySelector(".startgame_menu");
+  gameMenu.style.display = "none";
+};
+
+const goToGame = () => {
+  hideGameMenu();
+  audios.gameMainAudio.play();
+};
+const drawHighscoreOnMenu = () => {
+  const highscoreTextElement = document.querySelector(".highscore");
+  highscoreTextElement.innerHTML = getHighScore();
+};
 
 const startGameLoop = () => {
   moveSnake();
@@ -159,41 +203,40 @@ const startGameLoop = () => {
 };
 
 const drawResetOption = () => {
-  const restartText = document.createElement("p");
-  restartText.innerHTML = "A to Restart";
-  restartText.style.position = "absolute";
-  restartText.style.left = `${canvas.offsetLeft + canvas.width / 2 - 80}px`;
-  restartText.style.top = `${canvas.offsetTop + canvas.height / 2 + 15}px`;
-  restartText.style.zIndex = 10;
-  restartText.style.fontSize = "30px";
-  restartText.style.fontFamily = "VT323";
-  restartText.style.color = "white";
-  restartText.style.textAlign = "center";
-  restartText.style.cursor = "pointer";
-  restartText.onclick = resetGame;
-  document.body.appendChild(restartText);
+  const resetText = document.querySelector(".restartText");
+  resetText.style.display = "flex";
 };
 
 const drawExitOption = () => {
-  const exitText = document.createElement("p");
-  exitText.innerHTML = "B to Exit";
-
-  exitText.style.position = "absolute";
-  exitText.style.left = `${canvas.offsetLeft + canvas.width / 2 - 60}px`;
-  exitText.style.top = `${canvas.offsetTop + canvas.height / 2 + 45}px`;
-  exitText.style.zIndex = 10;
-  exitText.style.fontSize = "30px";
-  exitText.style.fontFamily = "VT323";
-  exitText.style.color = "white";
-  exitText.style.textAlign = "center";
-  exitText.style.cursor = "pointer";
-  exitText.onclick = goBackToMenu;
-  document.body.appendChild(exitText);
+  const exitText = document.querySelector(".exitText");
+  exitText.style.display = "flex";
 };
 
 const resetGame = () => {
-  location.reload();
+  cleanRestartText();
+  cleanExitText();
+  snake.resetSnake();
+  gameState.resetGameState();
+  resetMainAudioPlaybackRate();
+  audios.gameMainAudio.play();
+  clearScreen();
+  startGameLoop();
 };
+
+const cleanExitText = () => {
+  const exitText = document.querySelector(".exitText");
+  exitText.style.display = "none";
+};
+
+const cleanRestartText = () => {
+  const restartText = document.querySelector(".restartText");
+  restartText.style.display = "none";
+};
+
+const resetMainAudioPlaybackRate = () => {
+  audios.gameMainAudio.playbackRate = 1;
+};
+
 const goBackToMenu = () => {
   history.back();
 };
@@ -310,6 +353,10 @@ const clearScreen = () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
+const resetCanvas = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
 const drawLevel = () => {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -376,9 +423,7 @@ const checkAppleCollision = () => {
     apple.appleXPosition === snake.headXPosition &&
     apple.appleYPosition === snake.headYPosition
   ) {
-    const newRandomPosition = Math.floor(Math.random() * gameState.tileSize);
-    apple.appleXPosition = newRandomPosition;
-    apple.appleYPosition = newRandomPosition;
+    apple.randomizePositionInCanvas();
     growTailByOneTile();
     gameState.addOnePoint();
     audios.gulpSound.play();
