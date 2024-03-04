@@ -14,8 +14,22 @@
   <script defer src="index.js"></script>
 
   <body>
+
     <div class="gameWrapper">
+      <p onclick="resetGame()" class="gameOverText restartText" >A to Restart</p>
+      <p  onclick="goBackToMenu();" class="gameOverText exitText" >B to Exit</p>
+      <div class="startgame_menu">
+        <div>
+          <p class="menuText" onclick="goToGame()">PRESS A to PLAY</h1>
+          <p class="menuText" onclick="goBackToMenu()">PRESS B to QUIT</h1>
+        </div>
+
+        <p>Highscore: <span class="highscore"></span></h1>
+      </div>
+
       <canvas id="game" />
+
     </div>
+
   </body>
 </html>
