@@ -173,8 +173,9 @@ window.addEventListener("keydown", (event) => {
     if (!gameState.isGameStarted) {
       goBackToMenu();
     }
-    if (!isGameOver()) return;
-    goBackToMenu();
+    if (gameState.isGameOver) {
+      goBackToMenu();
+    }
   }
 });
 
