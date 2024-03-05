@@ -32,6 +32,22 @@ canvas {
   position: absolute;
 }
 
+.startgame_menu p {
+  animation: fade_in 2s 1;
+}
+
+@keyframes fade_in {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .menuText {
   cursor: pointer;
 }

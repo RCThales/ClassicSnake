@@ -71,6 +71,7 @@ class GameState {
   tileSize;
   gameInput;
   isGameStarted = false;
+  isGameOver = false;
 
   constructor() {
     this.gameInput = new GameInput();
@@ -160,8 +161,12 @@ window.addEventListener("keydown", (event) => {
       goToGame();
       gameState.isGameStarted = true;
     }
-    if (!isGameOver()) return;
-    resetGame();
+
+    if (gameState.isGameOver) {
+      resetGame();
+    } else {
+      return;
+    }
   }
 
   if (event.key.toLowerCase() === "l" || event.key === "Esc") {
@@ -189,8 +194,8 @@ const drawHighscoreOnMenu = () => {
 
 const startGameLoop = () => {
   moveSnake();
-  if (isGameOver()) {
-    setGameOver();
+  checkIfGameOver();
+  if (gameState.isGameOver) {
     return;
   }
   drawLevel();
@@ -213,6 +218,7 @@ const drawExitOption = () => {
 };
 
 const resetGame = () => {
+  gameState.isGameOver = false;
   cleanRestartText();
   cleanExitText();
   snake.resetSnake();
@@ -253,15 +259,15 @@ const setHighScore = () => {
   }
 };
 
-const isGameOver = () => {
+const checkIfGameOver = () => {
   if (isGameOnInitialStateOfPause()) {
     return false;
   }
   if (snakeAteItself()) {
-    return true;
+    setGameOver();
   }
   if (snakeHitAWall()) {
-    return true;
+    setGameOver();
   }
 };
 
@@ -304,6 +310,7 @@ const setGameOver = () => {
   drawSeparationLine();
   drawResetOption();
   drawExitOption();
+  gameState.isGameOver = true;
 };
 
 const playGameOverAudio = () => {
